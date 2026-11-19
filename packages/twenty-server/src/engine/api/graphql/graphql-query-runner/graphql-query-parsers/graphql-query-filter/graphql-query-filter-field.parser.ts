@@ -151,10 +151,13 @@ export class GraphqlQueryFilterFieldParser {
       useDirectTableReference,
     });
 
+    // A NULL column makes the comparison NULL, which a surrounding NOT keeps NULL and drops the row
+    const nullSafeSql = `COALESCE((${sql}), FALSE)`;
+
     if (isFirst) {
-      queryBuilder.where(sql, params);
+      queryBuilder.where(nullSafeSql, params);
     } else {
-      queryBuilder.andWhere(sql, params);
+      queryBuilder.andWhere(nullSafeSql, params);
     }
   }
 
@@ -337,11 +340,13 @@ export class GraphqlQueryFilterFieldParser {
         useDirectTableReference,
       });
 
-      if (isFirst && index === 0) {
-        queryBuilder.where(sql, params);
-      }
+      const nullSafeSql = `COALESCE((${sql}), FALSE)`;
 
-      queryBuilder.andWhere(sql, params);
+      if (isFirst && index === 0) {
+        queryBuilder.where(nullSafeSql, params);
+      } else {
+        queryBuilder.andWhere(nullSafeSql, params);
+      }
     });
   }
 }
